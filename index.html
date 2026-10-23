@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeGuard Insurance System</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        /* --- CLASSIC PROFESSIONAL THEME (Navy Blue & Gold) --- */
+        :root {
+            --primary: #0a2342; /* Classic Navy */
+            --secondary: #cba135; /* Gold Accent */
+            --light: #f4f4f9;
+            --text: #2c3e50;
+            --danger: #b91c1c;
+            --success: #15803d;
+        }
+
+        body { 
+            font-family: 'Merriweather', serif; 
+            background-color: var(--light); 
+            margin: 0; padding: 0; 
+            color: var(--text);
+        }
+
+        /* --- LAYOUT --- */
+        .container { 
+            max-width: 1100px; 
+            margin: 30px auto; 
+            padding: 0 20px; 
+            position: relative;
+            z-index: 10; /* For floating over banner */
+        }
+        
+        .navbar {
+            background: var(--primary); color: white; padding: 20px 40px; 
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            position: relative;
+            z-index: 20;
+        }
+        .brand { font-size: 26px; font-weight: bold; letter-spacing: 1px; display: flex; align-items: center; gap: 10px; }
+        .nav-btn { background: transparent; border: 1px solid var(--secondary); color: var(--secondary); padding: 8px 15px; cursor: pointer; border-radius: 4px; transition: 0.3s; font-weight: bold;}
+        .nav-btn:hover { background: var(--secondary); color: var(--primary); }
+
+        /* --- NEW: MASS CORPORATE HERO BANNER --- */
+        .hero-banner {
+            width: 100%;
+            height: 450px;
+            /* MNC Level Skyscraper & Shield Vibe Image */
+            background: linear-gradient(rgba(10, 35, 66, 0.85), rgba(10, 35, 66, 0.7)), url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1600&q=80') center/cover no-repeat;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding-bottom: 50px;
+        }
+        .hero-banner h1 {
+            font-size: 42px;
+            color: var(--secondary);
+            margin-bottom: 15px;
+            font-family: 'Helvetica', sans-serif;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+        }
+        .hero-banner p {
+            font-size: 18px;
+            max-width: 600px;
+            color: #e2e8f0;
+            line-height: 1.6;
+        }
+
+        /* Float the cards up over the image */
+        .overlap-grid {
+            margin-top: -100px !important; 
+        }
+
+        /* --- CARDS --- */
+        .section { display: none; animation: slideUp 0.6s ease-out; }
+        .active { display: block; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { 
+            background: white; border-radius: 8px; padding: 25px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1); margin-bottom: 25px; 
+            border-top: 4px solid var(--primary);
+        }
+        .card h3 { margin-top: 0; color: var(--primary); border-bottom: 1px solid #eee; padding-bottom: 10px; font-family: 'Helvetica', sans-serif; font-weight: 600; }
+
+        /* --- FORMS --- */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+        input, select { 
+            width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; 
+            box-sizing: border-box; font-family: sans-serif; 
+        }
+        label { font-size: 14px; color: #666; font-family: sans-serif; margin-bottom: 5px; display: block; font-weight:bold; }
+
+        /* --- BUTTONS --- */
+        .btn { 
+            padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; 
+            font-weight: bold; font-family: sans-serif; transition: 0.2s; 
+            width: 100%; font-size: 15px;
+        }
+        .btn-gold { background: var(--secondary); color: var(--primary); }
+        .btn-gold:hover { background: #b38b25; }
+        .btn-blue { background: var(--primary); color: white; }
+        .btn-blue:hover { background: #081b33; }
+        .btn:disabled { background: #ccc; color: #666; cursor: not-allowed; }
+        
+        /* --- TABLES --- */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-family: sans-serif; }
+        th { background: var(--primary); color: white; padding: 12px; text-align: left; }
+        td { padding: 12px; border-bottom: 1px solid #eee; }
+        tr:hover { background-color: #f9f9f9; }
+
+        /* --- BADGES & ALERTS --- */
+        .badge { padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-approved { background: #d4edda; color: #155724; }
+        .status-rejected { background: #f8d7da; color: #721c24; }
+
+        .trust-score-box { font-weight: bold; padding: 5px; border-radius: 4px; display: inline-block; font-size: 13px; }
+        .score-good { color: var(--success); border: 1px solid var(--success); background: #f0fdf4; }
+        .score-warn { color: #b45309; border: 1px solid #b45309; background: #fffbeb; }
+        .score-bad { color: var(--danger); border: 1px solid var(--danger); background: #fef2f2; }
+
+        /* --- FACE SCANNER UI --- */
+        .scanner-container {
+            position: relative; width: 280px; height: 280px; margin: 20px auto;
+            border-radius: 50%; overflow: hidden; border: 4px solid var(--secondary);
+            box-shadow: 0 0 20px rgba(203, 161, 53, 0.4); background-color: #000;
+        }
+        #webcam { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+        .laser {
+            position: absolute; top: 0; left: 0; width: 100%; height: 4px; background-color: var(--success);
+            box-shadow: 0 0 15px var(--success); animation: scan 2s infinite linear; display: none;
+        }
+        @keyframes scan { 0% { top: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            font-size: 18px; font-weight: bold; color: var(--success); display: none; font-family: sans-serif;
+        }
+        #statusText { font-family: sans-serif; margin-top: 10px; font-weight: bold; color: var(--primary); }
+
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="brand"><i class="fas fa-shield-alt"></i> LifeGuard Insurance</div>
+    <div id="navButtons" style="display:none;">
+        <span id="userDisplay" style="margin-right: 15px; font-size: 14px;"></span>
+        <button class="nav-btn" onclick="logout()">Sign Out</button>
+    </div>
+</div>
+
+<div id="heroBanner" class="hero-banner">
+    <h1>Protecting Your Future, Today.</h1>
+    <p>Experience India's most advanced, AI-driven insurance platform. Fast claims, smart trust scoring, and 100% transparent coverage.</p>
+</div>
+
+<div class="container overlap-grid"> <div id="authSection" class="section active">
+        <div class="form-grid">
+            <div class="card">
+                <h3><i class="fas fa-lock"></i> Secure Login</h3>
+                <label>Email ID</label>
+                <input type="email" id="loginEmail" placeholder="Enter your email">
+                <label style="margin-top:10px;">Password</label>
+                <input type="password" id="loginPassword" placeholder="Enter password">
+                
+                <button class="btn btn-blue" style="margin-top: 20px;" onclick="login()">Access Portal</button>
+                
+                <div style="text-align: center; margin: 15px 0; color: #999; font-family: sans-serif; font-size: 12px; font-weight:bold;">OR</div>
+                <button class="btn btn-gold" onclick="openFaceScanner()"><i class="fas fa-camera"></i> Login with Face ID</button>
+                
+                <p style="text-align: center; margin-top: 15px; font-family: sans-serif; font-size: 14px;">
+                    New Client? <a href="#" onclick="showRegister()" style="color: var(--primary); font-weight: bold;">Register Here</a>
+                </p>
+            </div>
+
+            <div class="card" style="border-top-color: var(--secondary);">
+                <h3><i class="fas fa-calculator"></i> Quick Premium Estimator</h3>
+                <p style="font-size: 13px; color: #666; font-family: sans-serif; margin-bottom: 15px;">Check how much you need to pay before joining.</p>
+                <label>Coverage Amount (Rs)</label>
+                <input type="number" id="calcAmount" placeholder="e.g. 500000">
+                <label style="margin-top:10px;">Age</label>
+                <input type="number" id="calcAge" placeholder="e.g. 30">
+                <div id="calcResult" style="margin: 15px 0; padding: 10px; background: #f0fdf4; color: var(--success); display: none; font-weight: bold; text-align: center; border-radius: 4px;"></div>
+                <button class="btn btn-gold" style="margin-top:10px;" onclick="calculatePremium()">Calculate Premium</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="faceAuthSection" class="section">
+        <div class="card" style="max-width: 450px; margin: 0 auto; text-align: center; border-top-color: var(--secondary);">
+            <h3><i class="fas fa-user-astronaut"></i> Biometric Authentication</h3>
+            <p style="font-size: 13px; color: #666; font-family: sans-serif;">Position your face inside the circle for AI verification.</p>
+            
+            <div class="scanner-container">
+                <video id="webcam" autoplay playsinline></video>
+                <div class="laser" id="laserLine"></div>
+                <div class="overlay" id="successOverlay">
+                    <i class="fas fa-check-circle" style="font-size: 40px; margin-bottom: 10px;"></i>
+                    Match Found!
+                </div>
+            </div>
+            
+            <p id="statusText">Initializing Camera...</p>
+            
+            <button class="btn btn-blue" id="scanBtn" onclick="startFaceScan()" disabled style="margin-top: 10px;">Start Scan</button>
+            <button class="nav-btn" style="width: 100%; margin-top: 15px; border:none; color: #666;" onclick="closeFaceScanner()">Cancel & Go Back</button>
+        </div>
+    </div>
+
+    <div id="registerSection" class="section">
+        <div class="card" style="max-width: 500px; margin: 0 auto;">
+            <h3><i class="fas fa-user-plus"></i> New Account Registration</h3>
+            <input type="text" id="regUsername" placeholder="Full Name" style="margin-bottom: 10px;">
+            <input type="email" id="regEmail" placeholder="Email Address" style="margin-bottom: 10px;">
+            <input type="password" id="regPassword" placeholder="Create Password" style="margin-bottom: 10px;">
+            <select id="regRole" style="margin-bottom: 10px;">
+                <option value="USER">Policy Holder (User)</option>
+                <option value="ADMIN">Insurance Officer (Admin)</option>
+            </select>
+            <button class="btn btn-blue" onclick="register()">Create Account</button>
+            <button class="nav-btn" style="width: 100%; margin-top: 10px; border:none; color: #666;" onclick="showLogin()">Back to Login</button>
+        </div>
+    </div>
+
+    <div id="userSection" class="section">
+        <div class="form-grid">
+            <div class="card">
+                <h3><i class="fas fa-file-contract"></i> Available Plans</h3>
+                <table id="policyTable">
+                    <thead><tr><th>ID</th><th>Plan Name</th><th>Coverage</th><th>Premium</th></tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3><i class="fas fa-hand-holding-usd"></i> File a Claim</h3>
+                <input type="number" id="claimPolicyId" placeholder="Policy ID" style="margin-bottom: 10px;">
+                <input type="number" id="claimAmount" placeholder="Claim Amount" style="margin-bottom: 10px;">
+                <input type="text" id="claimReason" placeholder="Reason (e.g. Viral Fever)" style="margin-bottom: 10px;">
+                <button class="btn btn-gold" onclick="submitClaim()">Submit Request</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3><i class="fas fa-history"></i> My Claim Status</h3>
+            <button class="nav-btn" onclick="loadUserHistory()" style="float: right; margin-top: -40px;">Refresh</button>
+            <table id="userHistoryTable">
+                <thead><tr><th>Ref ID</th><th>Reason</th><th>Amount</th><th>Status</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="adminSection" class="section">
+        <div class="form-grid">
+            <div class="card">
+                <h3><i class="fas fa-plus-circle"></i> Launch New Plan</h3>
+                <input type="text" id="newPolicyName" placeholder="Plan Name" style="margin-bottom: 10px;">
+                <input type="number" id="newCoverage" placeholder="Max Coverage" style="margin-bottom: 10px;">
+                <input type="number" id="newPremium" placeholder="Premium Cost" style="margin-bottom: 10px;">
+                <button class="btn btn-blue" onclick="addPolicy()">Publish Plan</button>
+            </div>
+
+            <div class="card" style="text-align: center;">
+                <h3><i class="fas fa-chart-pie"></i> Claim Analytics</h3>
+                <div style="height: 200px; display: flex; justify-content: center;">
+                    <canvas id="claimsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3><i class="fas fa-user-shield"></i> Intelligent Claim Review</h3>
+            <p style="font-size: 13px; color: #666; font-family: sans-serif; margin-bottom: 15px;">
+                System automatically calculates a <b>Trust Score</b> based on claim amount and reason keywords.
+            </p>
+            <button class="nav-btn" onclick="loadPendingClaims()" style="float: right; margin-top: -60px;">Refresh List</button>
+            
+            <table id="adminClaimsTable">
+                <thead><tr><th>ID</th><th>User</th><th>Amount</th><th>Trust Score (AI)</th><th>Action</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const BASE_URL = "http://localhost:8080/api";
+    let CURRENT_USER = null;
+    let myChart = null;
+    let cameraStream = null;
+
+    // --- NAVIGATION HELPERS (Updated to control the Hero Banner) ---
+    function showSection(id) {
+        document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        
+        // Hide Hero Banner when logged in (Admin or User section)
+        const hero = document.getElementById('heroBanner');
+        if(id === 'authSection' || id === 'registerSection' || id === 'faceAuthSection') {
+            hero.style.display = 'flex';
+            document.querySelector('.container').classList.add('overlap-grid');
+        } else {
+            hero.style.display = 'none';
+            document.querySelector('.container').classList.remove('overlap-grid');
+        }
+    }
+    function showLogin() { showSection('authSection'); document.getElementById('navButtons').style.display = 'none'; }
+    function showRegister() { showSection('registerSection'); }
+
+    // --- FACE ID LOGIC ---
+    async function openFaceScanner() {
+        showSection('faceAuthSection');
+        const videoElement = document.getElementById('webcam');
+        const statusText = document.getElementById('statusText');
+        const scanBtn = document.getElementById('scanBtn');
+        
+        document.getElementById('laserLine').style.display = 'none';
+        document.getElementById('successOverlay').style.display = 'none';
+        scanBtn.innerHTML = 'Start Scan';
+
+        try {
+            cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+            videoElement.srcObject = cameraStream;
+            statusText.innerText = "Camera Ready. Look straight.";
+            statusText.style.color = "var(--primary)";
+            scanBtn.disabled = false;
+        } catch (error) {
+            statusText.innerText = "Error: Please allow Camera access!";
+            statusText.style.color = "var(--danger)";
+            scanBtn.disabled = true;
+        }
+    }
+
+    function closeFaceScanner() {
+        if(cameraStream) { cameraStream.getTracks().forEach(track => track.stop()); }
+        showLogin();
+    }
+
+    function startFaceScan() {
+        const scanBtn = document.getElementById('scanBtn');
+        const statusText = document.getElementById('statusText');
+        const laserLine = document.getElementById('laserLine');
+        const successOverlay = document.getElementById('successOverlay');
+
+        scanBtn.disabled = true;
+        scanBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Scanning Features...';
+        statusText.innerText = "Analyzing Biometrics...";
+        laserLine.style.display = 'block';
+
+        setTimeout(() => {
+            laserLine.style.display = 'none';
+            successOverlay.style.display = 'flex';
+            statusText.innerText = "Authentication Successful!";
+            statusText.style.color = "var(--success)";
+            
+            setTimeout(() => {
+                if(cameraStream) cameraStream.getTracks().forEach(track => track.stop());
+                
+                // MOCK DATA FOR DEMO
+                CURRENT_USER = { id: 999, username: "Selvamani (Admin)", role: "ADMIN" };
+                
+                document.getElementById('navButtons').style.display = 'block';
+                document.getElementById('userDisplay').innerText = `Hello, ${CURRENT_USER.username}`;
+                
+                showSection('adminSection');
+                loadPendingClaims(); 
+            }, 1500);
+        }, 3000);
+    }
+
+    // --- 1. PREMIUM CALCULATOR LOGIC ---
+    function calculatePremium() {
+        const amount = parseFloat(document.getElementById('calcAmount').value);
+        const age = parseInt(document.getElementById('calcAge').value);
+        const resultBox = document.getElementById('calcResult');
+        if (!amount || !age) { alert("Enter details first"); return; }
+        let estimated = (amount * 0.01) + (age * 100);
+        resultBox.style.display = 'block';
+        resultBox.innerHTML = `Estimated Premium: Rs. ${estimated} / year`;
+    }
+
+    // --- 2. EMAIL AUTHENTICATION ---
+    async function login() {
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+
+        try {
+            const res = await fetch(`${BASE_URL}/users/login`, {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, password })
+            });
+            if(res.ok) {
+                const text = await res.text();
+                if(!text) { alert("User not found!"); return; }
+                CURRENT_USER = JSON.parse(text);
+                
+                document.getElementById('navButtons').style.display = 'block';
+                document.getElementById('userDisplay').innerText = `Hello, ${CURRENT_USER.username}`;
+                
+                if(CURRENT_USER.role === 'ADMIN') {
+                    showSection('adminSection');
+                    loadPendingClaims();
+                } else {
+                    showSection('userSection');
+                    loadPolicies();
+                    loadUserHistory();
+                }
+            } else { alert("Invalid Credentials"); }
+        } catch(e) { alert("Server Error. Is Backend Running?"); }
+    }
+    
+    function logout() { location.reload(); }
+    
+    async function register() {
+        const user = {
+            username: document.getElementById('regUsername').value,
+            email: document.getElementById('regEmail').value,
+            password: document.getElementById('regPassword').value,
+            role: document.getElementById('regRole').value
+        };
+        await fetch(`${BASE_URL}/users/register`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(user) });
+        alert("Account Created! Please Login.");
+        showLogin();
+    }
+
+    // --- 3. CORE FEATURES ---
+    async function loadPolicies() {
+        const res = await fetch(`${BASE_URL}/policies`);
+        const data = await res.json();
+        let html = data.map(p => `<tr><td>#${p.id}</td><td><b>${p.policyName}</b></td><td>Rs. ${p.maxCoverageAmount}</td><td>Rs. ${p.premium}</td></tr>`).join('');
+        document.querySelector("#policyTable tbody").innerHTML = html;
+    }
+
+    async function submitClaim() {
+        const req = { userId: CURRENT_USER.id, policyId: document.getElementById('claimPolicyId').value, amount: document.getElementById('claimAmount').value, reason: document.getElementById('claimReason').value };
+        const res = await fetch(`${BASE_URL}/claims/submit`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(req) });
+        if(res.ok) { alert("Claim Submitted for Review"); loadUserHistory(); }
+        else alert("Error: Amount exceeds limit or Invalid ID");
+    }
+
+    async function loadUserHistory() {
+        const res = await fetch(`${BASE_URL}/claims/user/${CURRENT_USER.id}`);
+        const data = await res.json();
+        let html = data.map(c => `<tr><td>#${c.id}</td><td>${c.reason}</td><td>Rs. ${c.claimAmount}</td><td><span class="badge status-${c.status.toLowerCase()}">${c.status}</span></td></tr>`).join('');
+        document.querySelector("#userHistoryTable tbody").innerHTML = html;
+    }
+
+    // --- 4. ADMIN INTELLIGENCE ---
+    async function loadPendingClaims() {
+        const res = await fetch(`${BASE_URL}/claims/admin/pending`);
+        const data = await res.json();
+        updateChart(data.length);
+
+        let html = "";
+        if(data.length === 0) html = "<tr><td colspan='5' style='text-align:center; padding:20px;'>No Pending Claims</td></tr>";
+
+        data.forEach(c => {
+            let trustScore = 100; let analysisText = "Safe"; let scoreClass = "score-good";
+            const maxLimit = c.policy ? c.policy.maxCoverageAmount : 100000;
+            
+            if (c.claimAmount > (maxLimit * 0.8)) { trustScore -= 30; }
+            if (["cosmetic", "beauty", "aesthetic", "fake", "checkup"].some(word => c.reason.toLowerCase().includes(word))) { trustScore -= 50; }
+
+            if(trustScore < 50) { analysisText = "⚠️ Risk detected"; scoreClass = "score-bad"; }
+            else if(trustScore < 80) { analysisText = "⚠️ Review Needed"; scoreClass = "score-warn"; }
+
+            html += `<tr>
+                <td>#${c.id}</td>
+                <td>${c.user.username}<br><span style="font-size:11px; color:#888;">${c.reason}</span></td>
+                <td>Rs. ${c.claimAmount}</td>
+                <td><span class="trust-score-box ${scoreClass}">${trustScore}/100 - ${analysisText}</span></td>
+                <td>
+                    <button class="nav-btn" style="color:white; background:green; border:none;" onclick="approve(${c.id})"><i class="fas fa-check"></i></button>
+                    <button class="nav-btn" style="color:white; background:red; border:none;" onclick="reject(${c.id})"><i class="fas fa-times"></i></button>
+                </td>
+            </tr>`;
+        });
+        document.querySelector("#adminClaimsTable tbody").innerHTML = html;
+    }
+
+    async function addPolicy() {
+        const p = { policyName: document.getElementById('newPolicyName').value, maxCoverageAmount: document.getElementById('newCoverage').value, premium: document.getElementById('newPremium').value };
+        await fetch(`${BASE_URL}/policies/add`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
+        alert("New Plan Published");
+    }
+
+    async function approve(id) { if(confirm("Approve?")) { await fetch(`${BASE_URL}/claims/approve/${id}`, {method:'PUT'}); loadPendingClaims(); } }
+    async function reject(id) { if(confirm("Reject?")) { await fetch(`${BASE_URL}/claims/reject/${id}`, {method:'PUT'}); loadPendingClaims(); } }
+
+    function updateChart(pending) {
+        const ctx = document.getElementById('claimsChart').getContext('2d');
+        if (myChart) myChart.destroy();
+        myChart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Pending', 'Settled', 'Rejected'], datasets: [{ data: [pending, 12, 5], backgroundColor: ['#f39c12', '#15803d', '#b91c1c'], borderWidth: 0 }] } });
+    }
+</script>
+
+</body>
+</html>
